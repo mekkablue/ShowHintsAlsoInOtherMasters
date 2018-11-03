@@ -59,6 +59,7 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 				hintMaster = font.masters[hintMasterID]
 			else:
 				hintMaster = font.masters[0]
+				hintMasterID = hintMaster.id
 			
 			if hintMaster != master or not Glyphs.defaults["showHints"]:
 				hintLayer = glyph.layers[hintMasterID]
