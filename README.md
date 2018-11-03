@@ -1,4 +1,4 @@
-# Show Hints Also in Other Masters
+# Show PS Hints Also in Other Masters
 
 Glyphs.app plug-in for displaying hints from the hint-origin master (which is usually the first master unless you set the custom parameter `Get Hints from Master` in *File > Font Info > Font*) also in other masters. The main idea is to find stem hint overlaps that could cause Hint Replacement. Thanks to Jeremy Tankard for the idea.
 
@@ -8,13 +8,13 @@ It also displays in the hints in the hint-origin master if *View > Show Hints* i
 
 ### Installation
 
-1. One-click install *Show Hints Also in Other Masters* from *Window > Plugin Manager*
+1. One-click install *Show PS Hints Also in Other Masters* from *Window > Plugin Manager*
 2. Restart Glyphs.
 
 ### Usage Instructions
 
 1. Open at least one glyph in Edit View.
-2. Use *View > Show Hints Also in Other Masters* to toggle the display of the hints.
+2. Use *View > Show PS Hints Also in Other Masters* to toggle the display of the hints.
 
 ### Requirements
 
