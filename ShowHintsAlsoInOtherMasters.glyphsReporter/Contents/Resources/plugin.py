@@ -62,83 +62,113 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 	
 	def preview(self, layer):
 		if not Glyphs.defaults["GSPreview_Black"]:
-			self.drawHints( layer, size=20, vsize=5000 )
+			# white background:
+			self.drawHints(
+				layer, size=20, vsize=5000,
+				# hColor = NSColor.colorWithRed_green_blue_alpha_(0.1, 0.5, 0.8, 0.2), 
+				# vColor = NSColor.colorWithRed_green_blue_alpha_(0.8, 0.5, 0.1, 0.2), 
+				inPreview = True,
+			)
 		else:
-			self.drawHints( layer, size=20, vsize=5000, 
-				hColor = NSColor.colorWithRed_green_blue_alpha_(0.1, 0.5, 0.8, 0.6), 
-				vColor = NSColor.colorWithRed_green_blue_alpha_(0.8, 0.5, 0.1, 0.6), 
+			# black background:
+			self.drawHints(
+				layer, size=20, vsize=5000,
+				hColor = NSColor.colorWithRed_green_blue_alpha_(0.1, 0.5, 0.8, 0.6),
+				vColor = NSColor.colorWithRed_green_blue_alpha_(0.8, 0.5, 0.1, 0.6),
+				inPreview = True,
 			)
 	
 	def drawHints(
 				self, layer, size=10000, vsize=0,
 				hColor = NSColor.colorWithRed_green_blue_alpha_(0.1, 0.5, 0.8, 0.2), 
 				vColor = NSColor.colorWithRed_green_blue_alpha_(0.8, 0.5, 0.1, 0.2), 
+				inPreview = False,
 			):
-		# determine current master:
-		master = layer.associatedFontMaster()
 		
-		# determine hinted master:
 		glyph = layer.parent
-		if glyph:
+		if inPreview:
+			shouldDisplay = True
+		else:
 			font = glyph.parent
-			if not hasattr(font, "customParameters"):
-				font = Glyphs.font # preview with FontInterolpationProxy
-				glyph = font.glyphs[glyph.name]
-				
-			hintMasterID = font.customParameters["Get Hints From Master"]
-			if hintMasterID:
-				hintMaster = font.masters[hintMasterID]
-			else:
-				hintMaster = font.masters[0]
-				hintMasterID = hintMaster.id
-			
-			if hintMaster != master or not Glyphs.defaults["showHints"]:
+			if glyph:
+				# determine hinted master:
+				hintMasterParameter = font.customParameters["Get Hints From Master"]
+				if hintMasterParameter:
+					hintMasterID = hintMasterParameter
+					hintMaster = font.masters[hintMasterID]
+				else:
+					hintMaster = font.masters[0]
+					hintMasterID = hintMaster.id
+					
+				# don't display in layer with hints:
+				master = layer.associatedFontMaster()
+				notTheHintedMaster = hintMaster != master
+				# unless View > Show Hints is currently off:
+				shouldDisplay = notTheHintedMaster or not Glyphs.defaults["showHints"]
+					
+		if shouldDisplay:
+			if not inPreview:
 				hintLayer = glyph.layers[hintMasterID]
 				layersCompatible = glyph.mastersCompatibleForLayers_((layer, hintLayer))
+			else:
+				hintLayer = layer
+				layersCompatible = True
 				
-				if not layersCompatible:
-					pass # display a warning text
-				else:
-					if self.getScale() > 0.1:
-						bboxLeft = layer.bounds.origin.x
-						bboxBottom = layer.bounds.origin.y
-						bboxHeight = layer.bounds.size.height
-						bboxWidth = layer.bounds.size.width
-						
-						for hint in hintLayer.hints:
-							if hint.type == TOPGHOST and Glyphs.defaults[ "com.mekkablue.ShowHintsAlsoInOtherMasters.ghostHints" ]:
-								originNode = hint.originNode
-								originNodeIndex = originNode.index
-								originPathIndex = hintLayer.indexOfPath_(originNode.parent)
-								currentNode = layer.paths[originPathIndex].nodes[originNodeIndex]
+			if layersCompatible:
+				if self.getScale() > 0.05:
+					bboxLeft = layer.bounds.origin.x
+					bboxBottom = layer.bounds.origin.y
+					bboxHeight = layer.bounds.size.height
+					bboxWidth = layer.bounds.size.width
+					
+					for hint in hintLayer.hints:
+						if hint.type == TOPGHOST and Glyphs.defaults[ "com.mekkablue.ShowHintsAlsoInOtherMasters.ghostHints" ]:
+							originNode = hint.originNode
+							if originNode:
+								if inPreview:
+									currentNode = originNode
+								else:
+									originNodeIndex = originNode.index
+									originPathIndex = hintLayer.indexOfPath_(originNode.parent)
+									currentNode = layer.paths[originPathIndex].nodes[originNodeIndex]
 								if currentNode:
 									hColor.set()
 									drawRect = NSRect( (bboxLeft-size, currentNode.y-20), (bboxWidth+size*2, 20) )
 									drawRect = self.rectifyRect(drawRect)
 									NSBezierPath.fillRect_( drawRect )
-						
-							elif hint.type == BOTTOMGHOST and Glyphs.defaults[ "com.mekkablue.ShowHintsAlsoInOtherMasters.ghostHints" ]:
-								originNode = hint.originNode
-								originNodeIndex = originNode.index
-								originPathIndex = hintLayer.indexOfPath_(originNode.parent)
-								currentNode = layer.paths[originPathIndex].nodes[originNodeIndex]
+					
+						elif hint.type == BOTTOMGHOST and Glyphs.defaults[ "com.mekkablue.ShowHintsAlsoInOtherMasters.ghostHints" ]:
+							originNode = hint.originNode
+							if originNode:
+								if inPreview:
+									currentNode = originNode
+								else:
+									originNodeIndex = originNode.index
+									originPathIndex = hintLayer.indexOfPath_(originNode.parent)
+									currentNode = layer.paths[originPathIndex].nodes[originNodeIndex]
 								if currentNode:
 									hColor.set()
 									drawRect = NSRect( (bboxLeft-size, currentNode.y), (bboxWidth+size*2, 20) )
 									drawRect = self.rectifyRect(drawRect)
 									NSBezierPath.fillRect_( drawRect )
-						
-							elif hint.type == STEM:
-								originNode = hint.originNode
-								originNodeIndex = originNode.index
-								originPathIndex = hintLayer.indexOfPath_(originNode.parent)
-								currentOrigin = layer.paths[originPathIndex].nodes[originNodeIndex]
-						
-								targetNode = hint.targetNode
-								targetNodeIndex = targetNode.index
-								targetPathIndex = hintLayer.indexOfPath_(targetNode.parent)
-								currentTarget = layer.paths[targetPathIndex].nodes[targetNodeIndex]
-						
+					
+						elif hint.type == STEM:
+							originNode = hint.originNode
+							targetNode = hint.targetNode
+							
+							if originNode and targetNode:
+								if inPreview:
+									currentOrigin = originNode
+									currentTarget = targetNode
+								else:
+									# origin:
+									originNodeIndex = originNode.index
+									originPathIndex = hintLayer.indexOfPath_(originNode.parent)
+									currentOrigin = layer.paths[originPathIndex].nodes[originNodeIndex]
+									# target:
+									targetNodeIndex = targetNode.index
+									targetPathIndex = hintLayer.indexOfPath_(targetNode.parent)
+									currentTarget = layer.paths[targetPathIndex].nodes[targetNodeIndex]
 								if currentOrigin and currentTarget:
 									if hint.horizontal and Glyphs.defaults[ "com.mekkablue.ShowHintsAlsoInOtherMasters.horizontalStemHints" ]:
 										hColor.set()
@@ -167,7 +197,7 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 				'en': u"Show Vertical Stem Hints",
 				'de': u"Senkrechte Stamm-Hints anzeigen",
 				'es': u"Mostrar hints verticales",
-				'fr': u"Afficher hints verticals",
+				'fr': u"Afficher hints verticaux",
 				}), 
 			'action': self.toggleVerticalStemHints,
 			'state': Glyphs.defaults[ "com.mekkablue.ShowHintsAlsoInOtherMasters.verticalStemHints" ],
@@ -177,7 +207,7 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 				'en': u"Show Horizontal Stem Hints",
 				'de': u"Waagrechte Stamm-Hints anzeigen",
 				'es': u"Mostrar hints horizontales",
-				'fr': u"Afficher hints horizontals",
+				'fr': u"Afficher hints horizontaux",
 				}), 
 			'action': self.toggleHorizontalStemHints,
 			'state': Glyphs.defaults[ "com.mekkablue.ShowHintsAlsoInOtherMasters.horizontalStemHints" ],
@@ -186,8 +216,8 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 			'name': Glyphs.localize({
 				'en': u"Show Ghost Hints",
 				'de': u"Ghost-Hints anzeigen",
-				'es': u"Mostrar hints ghost",
-				'fr': u"Afficher hints ghost",
+				'es': u"Mostrar ghost hints",
+				'fr': u"Afficher hints «ghost»",
 				}), 
 			'action': self.toggleGhostHints,
 			'state': Glyphs.defaults[ "com.mekkablue.ShowHintsAlsoInOtherMasters.ghostHints" ],

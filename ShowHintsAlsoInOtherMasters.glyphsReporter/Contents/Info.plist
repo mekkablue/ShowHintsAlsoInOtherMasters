@@ -17,15 +17,15 @@
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleVersion</key>
-	<string>4</string>
+	<string>5</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.3</string>
+	<string>1.0.4</string>
 	<key>UpdateFeedURL</key>
 	<string>https://raw.githubusercontent.com/mekkablue/ShowHintsAlsoInOtherMasters/master/ShowHintsAlsoInOtherMasters.glyphsReporter/Contents/Info.plist</string>
 	<key>productPageURL</key>
 	<string>https://github.com/mekkablue/ShowHintsAlsoInOtherMasters</string>
 	<key>productReleaseNotes</key>
-	<string>Added options to context menu, suppress drawing when spacebar is held down for preview.</string>
+	<string>Improved French translation.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright, Rainer Erich Scheichelbauer, 2018</string>
 	<key>NSPrincipalClass</key>
