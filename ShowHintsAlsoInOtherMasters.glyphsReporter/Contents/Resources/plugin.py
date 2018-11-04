@@ -25,6 +25,11 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 			'fr': u'hints PS aussi dans les autres masters',
 			'es': u'hints PS también en los otros masters'
 		})
+		
+		Glyphs.registerDefault("com.mekkablue.ShowHintsAlsoInOtherMasters.verticalStemHints", True)
+		Glyphs.registerDefault("com.mekkablue.ShowHintsAlsoInOtherMasters.horizontalStemHints", True)
+		Glyphs.registerDefault("com.mekkablue.ShowHintsAlsoInOtherMasters.ghostHints", True)
+		
 	
 	def rectifyRect(self, rect):
 		"""Converts rect with negative size into positive size."""
@@ -45,8 +50,30 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 			(newRectSizeWidth, newRectSizeHeight)
 		)
 		return newRect
-		
+	
 	def background(self, layer):
+		glyph = layer.parent
+		if glyph:
+			font = glyph.parent
+			if font:
+				windowController = font.parent.windowController()
+				if not windowController.SpaceKey():
+					self.drawHints( layer )
+	
+	def preview(self, layer):
+		if not Glyphs.defaults["GSPreview_Black"]:
+			self.drawHints( layer, size=20, vsize=5000 )
+		else:
+			self.drawHints( layer, size=20, vsize=5000, 
+				hColor = NSColor.colorWithRed_green_blue_alpha_(0.1, 0.5, 0.8, 0.6), 
+				vColor = NSColor.colorWithRed_green_blue_alpha_(0.8, 0.5, 0.1, 0.6), 
+			)
+	
+	def drawHints(
+				self, layer, size=10000, vsize=0,
+				hColor = NSColor.colorWithRed_green_blue_alpha_(0.1, 0.5, 0.8, 0.2), 
+				vColor = NSColor.colorWithRed_green_blue_alpha_(0.8, 0.5, 0.1, 0.2), 
+			):
 		# determine current master:
 		master = layer.associatedFontMaster()
 		
@@ -54,6 +81,10 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 		glyph = layer.parent
 		if glyph:
 			font = glyph.parent
+			if not hasattr(font, "customParameters"):
+				font = Glyphs.font # preview with FontInterolpationProxy
+				glyph = font.glyphs[glyph.name]
+				
 			hintMasterID = font.customParameters["Get Hints From Master"]
 			if hintMasterID:
 				hintMaster = font.masters[hintMasterID]
@@ -69,31 +100,31 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 					pass # display a warning text
 				else:
 					if self.getScale() > 0.1:
-						# set drawing color
-						hColor = NSColor.colorWithRed_green_blue_alpha_(0.1, 0.5, 0.8, 0.2)
-						vColor = NSColor.colorWithRed_green_blue_alpha_(0.8, 0.5, 0.1, 0.2)
-						size = 10000
-				
+						bboxLeft = layer.bounds.origin.x
+						bboxBottom = layer.bounds.origin.y
+						bboxHeight = layer.bounds.size.height
+						bboxWidth = layer.bounds.size.width
+						
 						for hint in hintLayer.hints:
-							if hint.type == TOPGHOST:
+							if hint.type == TOPGHOST and Glyphs.defaults[ "com.mekkablue.ShowHintsAlsoInOtherMasters.ghostHints" ]:
 								originNode = hint.originNode
 								originNodeIndex = originNode.index
 								originPathIndex = hintLayer.indexOfPath_(originNode.parent)
 								currentNode = layer.paths[originPathIndex].nodes[originNodeIndex]
 								if currentNode:
 									hColor.set()
-									drawRect = NSRect( (-size, currentNode.y-20), (size*2, 20) )
+									drawRect = NSRect( (bboxLeft-size, currentNode.y-20), (bboxWidth+size*2, 20) )
 									drawRect = self.rectifyRect(drawRect)
 									NSBezierPath.fillRect_( drawRect )
 						
-							elif hint.type == BOTTOMGHOST:
+							elif hint.type == BOTTOMGHOST and Glyphs.defaults[ "com.mekkablue.ShowHintsAlsoInOtherMasters.ghostHints" ]:
 								originNode = hint.originNode
 								originNodeIndex = originNode.index
 								originPathIndex = hintLayer.indexOfPath_(originNode.parent)
 								currentNode = layer.paths[originPathIndex].nodes[originNodeIndex]
 								if currentNode:
 									hColor.set()
-									drawRect = NSRect( (-size, currentNode.y), (size*2, 20) )
+									drawRect = NSRect( (bboxLeft-size, currentNode.y), (bboxWidth+size*2, 20) )
 									drawRect = self.rectifyRect(drawRect)
 									NSBezierPath.fillRect_( drawRect )
 						
@@ -109,16 +140,83 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 								currentTarget = layer.paths[targetPathIndex].nodes[targetNodeIndex]
 						
 								if currentOrigin and currentTarget:
-									if hint.horizontal:
+									if hint.horizontal and Glyphs.defaults[ "com.mekkablue.ShowHintsAlsoInOtherMasters.horizontalStemHints" ]:
 										hColor.set()
-										drawRect = NSRect( (-size, currentOrigin.y), (size*2, currentTarget.y-currentOrigin.y) )
+										drawRect = NSRect( (bboxLeft-size, currentOrigin.y), (bboxWidth+size*2, currentTarget.y-currentOrigin.y) )
 										drawRect = self.rectifyRect(drawRect)
-									else:
+										NSBezierPath.fillRect_( drawRect )
+									elif not hint.horizontal and Glyphs.defaults[ "com.mekkablue.ShowHintsAlsoInOtherMasters.verticalStemHints" ]:
 										vColor.set()
-										drawRect = NSRect( (currentOrigin.x, -size), (currentTarget.x-currentOrigin.x, size*2) )
+										drawRect = NSRect( (currentOrigin.x, bboxBottom-size-vsize), (currentTarget.x-currentOrigin.x, bboxHeight+(size+vsize)*2) )
 										drawRect = self.rectifyRect(drawRect)
-										
-									NSBezierPath.fillRect_( drawRect )
+										NSBezierPath.fillRect_( drawRect )
+	
+	def conditionalContextMenus(self):
+		return [
+		{
+			'name': Glyphs.localize({
+				'en': u"‘Show PS Hints’ Options:", 
+				'de': u"Einstellungen für »PS-Hints anzeigen«:", 
+				'es': u"Opciones para ‘Mostrar hints PS’:", 
+				'fr': u"Options pour «Afficher les hints PS»:",
+				}), 
+			'action': None,
+		},
+		{
+			'name': Glyphs.localize({
+				'en': u"Show Vertical Stem Hints",
+				'de': u"Senkrechte Stamm-Hints anzeigen",
+				'es': u"Mostrar hints verticales",
+				'fr': u"Afficher hints verticals",
+				}), 
+			'action': self.toggleVerticalStemHints,
+			'state': Glyphs.defaults[ "com.mekkablue.ShowHintsAlsoInOtherMasters.verticalStemHints" ],
+		},
+		{
+			'name': Glyphs.localize({
+				'en': u"Show Horizontal Stem Hints",
+				'de': u"Waagrechte Stamm-Hints anzeigen",
+				'es': u"Mostrar hints horizontales",
+				'fr': u"Afficher hints horizontals",
+				}), 
+			'action': self.toggleHorizontalStemHints,
+			'state': Glyphs.defaults[ "com.mekkablue.ShowHintsAlsoInOtherMasters.horizontalStemHints" ],
+		},
+		{
+			'name': Glyphs.localize({
+				'en': u"Show Ghost Hints",
+				'de': u"Ghost-Hints anzeigen",
+				'es': u"Mostrar hints ghost",
+				'fr': u"Afficher hints ghost",
+				}), 
+			'action': self.toggleGhostHints,
+			'state': Glyphs.defaults[ "com.mekkablue.ShowHintsAlsoInOtherMasters.ghostHints" ],
+		},
+		]
+
+	def toggleVerticalStemHints(self):
+		self.toggleSetting("verticalStemHints")
+	
+	def toggleHorizontalStemHints(self):
+		self.toggleSetting("horizontalStemHints")
+	
+	def toggleGhostHints(self):
+		self.toggleSetting("ghostHints")
+	
+	def toggleSetting(self, prefName):
+		pref = "com.mekkablue.ShowHintsAlsoInOtherMasters.%s" % prefName
+		Glyphs.defaults[pref] = not bool(Glyphs.defaults[pref])
+	
+	def addMenuItemsForEvent_toMenu_(self, event, contextMenu):
+		if self.generalContextMenus:
+			setUpMenuHelper(contextMenu, self.generalContextMenus, self)
+		
+		newSeparator = NSMenuItem.separatorItem()
+		contextMenu.addItem_(newSeparator)
+		
+		contextMenus = self.conditionalContextMenus()
+		if contextMenus:
+			setUpMenuHelper(contextMenu, contextMenus, self)
 	
 	def __file__(self):
 		"""Please leave this method unchanged"""

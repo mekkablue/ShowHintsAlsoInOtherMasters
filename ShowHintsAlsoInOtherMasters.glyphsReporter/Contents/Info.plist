@@ -17,15 +17,15 @@
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
 	<key>CFBundleVersion</key>
-	<string>2</string>
+	<string>4</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0.1</string>
+	<string>1.0.3</string>
 	<key>UpdateFeedURL</key>
 	<string>https://raw.githubusercontent.com/mekkablue/ShowHintsAlsoInOtherMasters/master/ShowHintsAlsoInOtherMasters.glyphsReporter/Contents/Info.plist</string>
 	<key>productPageURL</key>
 	<string>https://github.com/mekkablue/ShowHintsAlsoInOtherMasters</string>
 	<key>productReleaseNotes</key>
-	<string>Fixed a bug where the plug-in would only work if a Get Hints From Master parameter was in the Font Info.</string>
+	<string>Added options to context menu, suppress drawing when spacebar is held down for preview.</string>
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright, Rainer Erich Scheichelbauer, 2018</string>
 	<key>NSPrincipalClass</key>
