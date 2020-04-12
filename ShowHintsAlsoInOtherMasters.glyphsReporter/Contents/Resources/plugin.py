@@ -1,6 +1,7 @@
 # encoding: utf-8
+from __future__ import division, print_function, unicode_literals
 
-############################################################################################
+###########################################################################################################
 #
 #
 #	Reporter Plugin
@@ -9,7 +10,7 @@
 #	https://github.com/schriftgestalt/GlyphsSDK/tree/master/Python%20Templates/Reporter
 #
 #
-############################################################################################
+###########################################################################################################
 
 import objc
 from GlyphsApp import *
@@ -18,6 +19,7 @@ from AppKit import NSRect
 
 class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 
+	@objc.python_method
 	def settings(self):
 		self.menuName = Glyphs.localize({
 			'en': u'PS Hints Also in Other Masters',
@@ -31,6 +33,7 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 		Glyphs.registerDefault("com.mekkablue.ShowHintsAlsoInOtherMasters.ghostHints", True)
 		
 	
+	@objc.python_method
 	def rectifyRect(self, rect):
 		"""Converts rect with negative size into positive size."""
 		newRectOriginX = rect.origin[0]
@@ -51,6 +54,7 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 		)
 		return newRect
 	
+	@objc.python_method
 	def background(self, layer):
 		glyph = layer.parent
 		if glyph:
@@ -60,6 +64,7 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 				if not windowController.SpaceKey():
 					self.drawHints( layer )
 	
+	@objc.python_method
 	def preview(self, layer):
 		if not Glyphs.defaults["GSPreview_Black"]:
 			# white background:
@@ -78,6 +83,7 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 				inPreview = True,
 			)
 	
+	@objc.python_method
 	def drawHints(
 				self, layer, size=10000, vsize=0,
 				hColor = NSColor.colorWithRed_green_blue_alpha_(0.1, 0.5, 0.8, 0.2), 
@@ -233,6 +239,7 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 	def toggleGhostHints(self):
 		self.toggleSetting("ghostHints")
 	
+	@objc.python_method
 	def toggleSetting(self, prefName):
 		pref = "com.mekkablue.ShowHintsAlsoInOtherMasters.%s" % prefName
 		Glyphs.defaults[pref] = not bool(Glyphs.defaults[pref])
@@ -248,6 +255,7 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 		if contextMenus:
 			setUpMenuHelper(contextMenu, contextMenus, self)
 	
+	@objc.python_method
 	def __file__(self):
 		"""Please leave this method unchanged"""
 		return __file__
