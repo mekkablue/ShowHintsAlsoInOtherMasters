@@ -150,8 +150,12 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 									currentNode = originNode
 								else:
 									originNodeIndex = originNode.index
-									originPathIndex = hintLayer.indexOfPath_(originNode.parent)
-									currentNode = layer.paths[originPathIndex].nodes[originNodeIndex]
+									try:
+										originPathIndex = hintLayer.indexOfObjectInShapes_(originNode.parent)
+										currentNode = layer.shapes[originPathIndex].nodes[originNodeIndex]
+									except:
+										originPathIndex = hintLayer.indexOfPath_(originNode.parent)
+										currentNode = layer.paths[originPathIndex].nodes[originNodeIndex]
 								if currentNode:
 									hColor.set()
 									drawRect = NSRect( (bboxLeft-size, currentNode.y), (bboxWidth+size*2, 20) )
@@ -169,12 +173,20 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 								else:
 									# origin:
 									originNodeIndex = originNode.index
-									originPathIndex = hintLayer.indexOfPath_(originNode.parent)
-									currentOrigin = layer.paths[originPathIndex].nodes[originNodeIndex]
+									try:
+										originPathIndex = hintLayer.indexOfObjectInShapes_(originNode.parent)
+										currentOrigin = layer.shapes[originPathIndex].nodes[originNodeIndex]
+									except:
+										originPathIndex = hintLayer.indexOfPath_(originNode.parent)
+										currentOrigin = layer.paths[originPathIndex].nodes[originNodeIndex]
 									# target:
 									targetNodeIndex = targetNode.index
-									targetPathIndex = hintLayer.indexOfPath_(targetNode.parent)
-									currentTarget = layer.paths[targetPathIndex].nodes[targetNodeIndex]
+									try:
+										targetPathIndex = hintLayer.indexOfObjectInShapes_(targetNode.parent)
+										currentTarget = layer.shapes[targetPathIndex].nodes[targetNodeIndex]
+									except:
+										targetPathIndex = hintLayer.indexOfPath_(targetNode.parent)
+										currentTarget = layer.paths[targetPathIndex].nodes[targetNodeIndex]
 								if currentOrigin and currentTarget:
 									if hint.horizontal and Glyphs.defaults[ "com.mekkablue.ShowHintsAlsoInOtherMasters.horizontalStemHints" ]:
 										hColor.set()
