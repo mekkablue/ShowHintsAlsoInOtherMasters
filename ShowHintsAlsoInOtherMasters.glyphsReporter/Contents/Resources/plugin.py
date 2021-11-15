@@ -25,7 +25,7 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 			'en': u'PS Hints Also in Other Masters',
 			'de': u'PS-Hints auch in anderen Mastern',
 			'fr': u'hints PS aussi dans les autres masters',
-			'es': u'hints PS también en los otros masters'
+			'es': u'hints PS también en los otros másteres',
 		})
 		
 		Glyphs.registerDefault("com.mekkablue.ShowHintsAlsoInOtherMasters.verticalStemHints", True)

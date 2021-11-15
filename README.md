@@ -4,7 +4,7 @@ Glyphs.app plug-in for displaying hints as set in the hint-origin master (which 
 
 ![ShowHintsAlsoInOtherMasters](ShowHintsAlsoInOtherMasters.png)
 
-*View > Show PS Hints Also in Other Masters* also displays hints in the hint-origin master itself if *View > Show Hints* is turned off.
+*View > Show PS Hints Also in Other Masters* (de: *PS-Hints auch in anderen Mastern anzeigen,* fr: *Afficher hints PS aussi dans les autres masters,* es: *Mostrar hints PS también en los otros másteres*) also displays hints in the hint-origin master itself if *View > Show Hints* is turned off.
 
 The plug-in also shows in the Preview area at the bottom of Edit view. Probably most useful is the *Show All Instances* setting, which lets you see the development of the hints:
 
