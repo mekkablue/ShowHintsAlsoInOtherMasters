@@ -17,12 +17,12 @@ from GlyphsApp import *
 from GlyphsApp.plugins import *
 from AppKit import NSRect
 
+rgbH = 0.1, 0.5, 0.8
+rgbV = 0.8, 0.5, 0.1
+alpha = 0.2
+
 class ShowHintsAlsoInOtherMasters(ReporterPlugin):
-	rgbH = 0.1, 0.5, 0.8
-	rgbV = 0.8, 0.5, 0.1
-	alphaDark = 0.6
-	alphaLight = 0.2
-	
+
 	prefID = "com.mekkablue.ShowHintsAlsoInOtherMasters"
 
 	@objc.python_method
@@ -71,45 +71,30 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 
 	@objc.python_method
 	def background(self, layer):
-		glyph = layer.parent
-		if glyph:
-			font = glyph.parent
-			if font:
-				windowController = font.parent.windowController()
-				if not windowController.SpaceKey():
-					self.drawHints(layer)
-	
+		font = layer.font()
+		if not font:
+			return
+
+		windowController = font.parent.windowController()
+		if windowController.SpaceKey():
+			return
+		self.drawHints(layer)
+
 	@objc.python_method
 	def preview(self, layer):
-		if not Glyphs.defaults["GSPreview_Black"]:
-			# white background:
-			self.drawHints(
-				layer, size=20, vsize=5000,
-				inPreview = True,
-			)
-		else:
-			# black background:
-			self.drawHints(
-				layer, size=20, vsize=5000,
-				hColor = NSColor.colorWithRed_green_blue_alpha_(*(self.rgbH), self.alphaDark),
-				vColor = NSColor.colorWithRed_green_blue_alpha_(*(self.rgbV), self.alphaDark),
-				inPreview = True,
-			)
-	
+		self.drawHints(
+			layer, size=20, vsize=5000,
+			inPreview = True,
+		)
+
 	@objc.python_method
 	def drawHints(
 				self, layer, size=10000, vsize=0,
-				hColor = None, 
-				vColor = None, 
-				inPreview = False,
+				inPreview=False,
 			):
-		
-		# fallback colors:
-		if not hColor:
-			hColor = NSColor.colorWithRed_green_blue_alpha_(*self.rgbH, self.alphaLight)
-		if not vColor:
-			vColor = NSColor.colorWithRed_green_blue_alpha_(*self.rgbV, self.alphaLight)
-		
+		hColor = NSColor.colorWithRed_green_blue_alpha_(rgbH[0], rgbH[1], rgbH[2], alpha)
+		vColor = NSColor.colorWithRed_green_blue_alpha_(rgbV[0], rgbV[1], rgbV[2], alpha)
+
 		glyph = layer.parent
 		if inPreview:
 			shouldDisplay = True
