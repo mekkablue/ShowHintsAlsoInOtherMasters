@@ -24,7 +24,7 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 	alphaLight = 0.2
 	
 	prefID = "com.mekkablue.ShowHintsAlsoInOtherMasters"
-	
+
 	@objc.python_method
 	def settings(self):
 		self.menuName = Glyphs.localize({
@@ -33,21 +33,21 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 			'fr': 'hints PS aussi dans les autres masters',
 			'es': 'hints PS también en los otros másteres',
 		})
-		
+
 		Glyphs.registerDefault(self.domain("verticalStemHints"), True)
 		Glyphs.registerDefault(self.domain("horizontalStemHints"), True)
 		Glyphs.registerDefault(self.domain("ghostHints"), True)
-	
+
 	@objc.python_method
 	def domain(self, prefName):
 		prefName = prefName.strip().strip(".")
 		return self.prefID + "." + prefName.strip()
-	
+
 	@objc.python_method
 	def pref(self, prefName):
 		prefDomain = self.domain(prefName)
 		return Glyphs.defaults[prefDomain]
-	
+
 	@objc.python_method
 	def rectifyRect(self, rect):
 		"""Converts rect with negative size into positive size."""
@@ -55,20 +55,20 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 		newRectOriginY = rect.origin[1]
 		newRectSizeWidth = rect.size[0]
 		newRectSizeHeight = rect.size[1]
-		
+
 		if newRectSizeWidth < 0:
 			newRectSizeWidth *= -1
 			newRectOriginX -= newRectSizeWidth
 		if newRectSizeHeight < 0:
 			newRectSizeHeight *= -1
 			newRectOriginY -= newRectSizeHeight
-			
+
 		newRect = NSRect(
 			(newRectOriginX, newRectOriginY),
 			(newRectSizeWidth, newRectSizeHeight)
 		)
 		return newRect
-	
+
 	@objc.python_method
 	def background(self, layer):
 		glyph = layer.parent
@@ -124,13 +124,13 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 				else:
 					hintMaster = font.masters[0]
 					hintMasterID = hintMaster.id
-					
+
 				# don't display in layer with hints:
 				master = layer.associatedFontMaster()
 				notTheHintedMaster = hintMaster != master
 				# unless View > Show Hints is currently off:
 				shouldDisplay = notTheHintedMaster or not Glyphs.defaults["showHints"]
-					
+
 		if shouldDisplay:
 			if not inPreview:
 				hintLayer = glyph.layers[hintMasterID]
@@ -138,13 +138,14 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 			else:
 				hintLayer = layer
 				layersCompatible = True
-				
+
 			if layersCompatible and self.getScale() > 0.05:
-				bboxLeft = layer.bounds.origin.x
-				bboxBottom = layer.bounds.origin.y
-				bboxHeight = layer.bounds.size.height
-				bboxWidth = layer.bounds.size.width
-				
+				bounds = layer.bounds
+				bboxLeft = bounds.origin.x
+				bboxBottom = bounds.origin.y
+				bboxHeight = bounds.size.height
+				bboxWidth = bounds.size.width
+
 				for hint in hintLayer.hints:
 					if hint.type == TOPGHOST and self.pref("ghostHints"):
 						originNode = hint.originNode
@@ -157,10 +158,10 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 								currentNode = layer.paths[originPathIndex].nodes[originNodeIndex]
 							if currentNode:
 								hColor.set()
-								drawRect = NSRect((bboxLeft-size, currentNode.y-20), (bboxWidth+size*2, 20))
+								drawRect = NSRect((bboxLeft - size, currentNode.y - 20), (bboxWidth + size * 2, 20))
 								drawRect = self.rectifyRect(drawRect)
 								NSBezierPath.fillRect_(drawRect)
-				
+
 					elif hint.type == BOTTOMGHOST and self.pref("ghostHints"):
 						originNode = hint.originNode
 						if originNode:
@@ -176,14 +177,14 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 									currentNode = layer.paths[originPathIndex].nodes[originNodeIndex]
 							if currentNode:
 								hColor.set()
-								drawRect = NSRect((bboxLeft-size, currentNode.y), (bboxWidth+size*2, 20))
+								drawRect = NSRect((bboxLeft-size, currentNode.y), (bboxWidth + size * 2, 20))
 								drawRect = self.rectifyRect(drawRect)
 								NSBezierPath.fillRect_(drawRect)
-				
+
 					elif hint.type == STEM:
 						originNode = hint.originNode
 						targetNode = hint.targetNode
-						
+
 						if originNode and targetNode:
 							if inPreview:
 								currentOrigin = originNode
@@ -208,15 +209,15 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 							if currentOrigin and currentTarget:
 								if hint.horizontal and self.pref("horizontalStemHints"):
 									hColor.set()
-									drawRect = NSRect((bboxLeft-size, currentOrigin.y), (bboxWidth+size*2, currentTarget.y-currentOrigin.y))
+									drawRect = NSRect((bboxLeft - size, currentOrigin.y), (bboxWidth + size * 2, currentTarget.y-currentOrigin.y))
 									drawRect = self.rectifyRect(drawRect)
 									NSBezierPath.fillRect_(drawRect)
 								elif not hint.horizontal and self.pref("verticalStemHints"):
 									vColor.set()
-									drawRect = NSRect((currentOrigin.x, bboxBottom-size-vsize), (currentTarget.x-currentOrigin.x, bboxHeight+(size+vsize)*2))
+									drawRect = NSRect((currentOrigin.x, bboxBottom-size-vsize), (currentTarget.x - currentOrigin.x, bboxHeight + (size + vsize) * 2))
 									drawRect = self.rectifyRect(drawRect)
 									NSBezierPath.fillRect_(drawRect)
-	
+
 	def conditionalContextMenus(self):
 		return [
 		{
@@ -262,29 +263,29 @@ class ShowHintsAlsoInOtherMasters(ReporterPlugin):
 
 	def toggleVerticalStemHints(self):
 		self.toggleSetting("verticalStemHints")
-	
+
 	def toggleHorizontalStemHints(self):
 		self.toggleSetting("horizontalStemHints")
-	
+
 	def toggleGhostHints(self):
 		self.toggleSetting("ghostHints")
-	
+
 	@objc.python_method
 	def toggleSetting(self, prefName):
 		domain = self.domain(prefName)
 		Glyphs.defaults[domain] = not bool(self.pref(prefName))
-	
+
 	def addMenuItemsForEvent_toMenu_(self, event, contextMenu):
 		if self.generalContextMenus:
 			setUpMenuHelper(contextMenu, self.generalContextMenus, self)
-		
+
 		newSeparator = NSMenuItem.separatorItem()
 		contextMenu.addItem_(newSeparator)
-		
+
 		contextMenus = self.conditionalContextMenus()
 		if contextMenus:
 			setUpMenuHelper(contextMenu, contextMenus, self)
-	
+
 	@objc.python_method
 	def __file__(self):
 		"""Please leave this method unchanged"""
